@@ -76,7 +76,7 @@ S.modifiers = {
 	  knobs = { bountyMul = 1.5 }, conflicts = { "bountyrush" } },
 	{ id = "suits", kind = "pos", name = "Overcharged Suits", desc = "+25 max shield for every sweeper.",
 	  stats = { armor = 25 }, conflicts = { "ironman", "fragile" } },
-	{ id = "medics", kind = "pos", name = "Field Medics", desc = "Health slowly regenerates up to 50%." },
+	{ id = "medics", kind = "pos", name = "Nano Machines", desc = "Health slowly regenerates up to 50%." },
 	{ id = "stockpile", kind = "pos", name = "Stockpile", desc = "Ammo pickups and crates give double.",
 	  knobs = { ammoMul = 2 }, conflicts = { "lowsupply", "drought" } },
 	{ id = "reconsweep", kind = "pos", name = "Recon Sweep", desc = "For the first 60s, enemies near the squad are outlined for everyone." },
@@ -181,16 +181,14 @@ S.modKindLabel = { pos = "+", neg = "-", mix = "~" }
 local W = {}
 local clear = { desc = "No effect." }
 for _, c in ipairs({ "gw_t1_sunny", "gw_t1_partlycloudy", "gw_t1_cloudy", "gw_t1_lightwind", "gw_t1_warmfront",
-	"gw_t2_coldfront", "gw_t1_shootingstar" }) do W[c] = clear end
+	"gw_t2_coldfront", "gw_t1_shootingstar", "gw_t1_night", }) do W[c] = clear end
 
-W.gw_t1_night          = { desc = "Enemies see 25% less far.", knobs = { npcLookMul = 0.75 } }
-W.gw_t1_auroraborealis = { desc = "Enemies see 15% less far.", knobs = { npcLookMul = 0.85 } }
+W.gw_t1_auroraborealis = { desc = "There a pretty sky.", knobs = { bountyMul = 1.2, } }
 W.gw_t1_heavyfog       = { desc = "Enemies see 40% less far.", knobs = { npcLookMul = 0.6 } }
 W.gw_t1_lightrain      = { desc = "Fire damage to sweepers -25%.", stats = { fire = 0.25 } }
 W.gw_t1_sleet          = { desc = "-5% move speed, fire damage to sweepers -25%.", stats = { speed = -0.05, fire = 0.25 } }
 W.gw_t1_lightsnow      = { desc = "-5% move speed.", stats = { speed = -0.05 } }
 W.gw_t1_drought        = { desc = "Shields recharge 15% slower.", stats = { regen = -0.15 } }
-W.gw_t1_quarter_hail   = { desc = "Falling hail. Take cover." }
 W.gw_t2_heavyrain      = { desc = "Enemies see 20% less far, fire damage to sweepers -40%.", stats = { fire = 0.4 }, knobs = { npcLookMul = 0.8 } }
 W.gw_t2_tropicalstorm  = { desc = "Enemies see 25% less far, call-ins recharge 15% slower.", stats = { fire = 0.4, orderCooldown = -0.15 }, knobs = { npcLookMul = 0.75 } }
 W.gw_t2_heavysnow      = { desc = "-10% move speed for everyone.", stats = { speed = -0.10 }, knobs = { npcSpeedMul = 0.9 } }
@@ -199,18 +197,14 @@ W.gw_t2_heatwave       = { desc = "Shields recharge 25% slower.", stats = { rege
 W.gw_t2_ashstorm       = { desc = "Enemies see 40% less far, shields recharge 10% slower.", stats = { regen = -0.10 }, knobs = { npcLookMul = 0.6 } }
 W.gw_t2_haboob         = { desc = "Enemies see 40% less far.", knobs = { npcLookMul = 0.6 } }
 W.gw_t2_bloodrain      = { desc = "Every kill heals 3 HP, enemies pay +10% cash.", stats = { killHeal = 3 }, knobs = { bountyMul = 1.1 } }
-W.gw_t2_golfball_hail  = { desc = "Falling hail. Take cover." }
 W.gw_t2_moderatewind   = { desc = "Call-ins recharge 10% slower.", stats = { orderCooldown = -0.10 } }
 W.gw_t3_acidrain       = { desc = "Being outdoors burns everyone (3/s), enemies too.", knobs = { outdoorDps = 3, npcOutdoorDps = 3 } }
-W.gw_t3_baseball_hail  = { desc = "Heavy hail. Take cover." }
-W.gw_t3_blizzard       = { desc = "-15% move speed, enemies slower and see 40% less far, shields recharge 20% slower.",
-	stats = { speed = -0.15, regen = -0.20 }, knobs = { npcSpeedMul = 0.85, npcLookMul = 0.6 } }
+W.gw_t3_blizzard       = { desc = "-15% move speed, enemies slower and see 40% less far, shields recharge 20% slower.",	stats = { speed = -0.15, regen = -0.20 }, knobs = { npcSpeedMul = 0.85, npcLookMul = 0.6 } }
 W.gw_t3_c1hurricane    = { desc = "Enemies see 30% less far, call-ins recharge 20% slower.", stats = { orderCooldown = -0.20 }, knobs = { npcLookMul = 0.7 } }
 W.gw_t3_extheavyrain   = { desc = "-5% move speed, enemies see 30% less far.", stats = { speed = -0.05, fire = 0.5 }, knobs = { npcLookMul = 0.7 } }
 W.gw_t3_severewind     = { desc = "Call-ins recharge 20% slower.", stats = { orderCooldown = -0.20 } }
 W.gw_t4_c2hurricane    = { desc = "Enemies see 30% less far, call-ins recharge 25% slower.", stats = { orderCooldown = -0.25 }, knobs = { npcLookMul = 0.7 } }
 W.gw_t4_derecho        = { desc = "Call-ins recharge 25% slower.", stats = { orderCooldown = -0.25 } }
-W.gw_t4_grapefruit_hail= { desc = "Deadly hail. Stay indoors." }
 W.gw_t4_hurricanewind  = { desc = "Call-ins recharge 25% slower.", stats = { orderCooldown = -0.25 } }
 W.gw_t4_martianduststorm = { desc = "Enemies see 50% less far, shields recharge 15% slower.", stats = { regen = -0.15 }, knobs = { npcLookMul = 0.5 } }
 W.gw_t4_supercell      = { desc = "Enemies see 25% less far, call-ins recharge 25% slower.", stats = { orderCooldown = -0.25 }, knobs = { npcLookMul = 0.75 } }
@@ -218,19 +212,14 @@ W.gw_t5_c3hurricane    = { desc = "Enemies see 35% less far, call-ins recharge 3
 W.gw_t5_downburst      = { desc = "Call-ins recharge 30% slower.", stats = { orderCooldown = -0.30 } }
 W.gw_t5_mhurricanewind = { desc = "Call-ins recharge 30% slower.", stats = { orderCooldown = -0.30 } }
 W.gw_t5_portalstorm    = { desc = "20% more enemies, enemies pay +15% cash.", knobs = { spawnCostMul = 1 / 1.2, bountyMul = 1.15 } }
-W.gw_t5_radiationstorm = { desc = "Being outdoors burns everyone (4/s), shields recharge 30% slower.",
-	stats = { regen = -0.30 }, knobs = { outdoorDps = 4, npcOutdoorDps = 4 } }
-W.gw_t6_arcticblast    = { desc = "-20% move speed, enemies 15% slower, shields recharge 40% slower.",
-	stats = { speed = -0.20, regen = -0.40 }, knobs = { npcSpeedMul = 0.85 } }
+W.gw_t5_radiationstorm = { desc = "Being outdoors burns everyone (4/s), shields recharge 30% slower.", stats = { regen = -0.30 }, knobs = { outdoorDps = 4, npcOutdoorDps = 4 } }
+W.gw_t6_arcticblast    = { desc = "-20% move speed, enemies 15% slower, shields recharge 40% slower.", stats = { speed = -0.20, regen = -0.40 }, knobs = { npcSpeedMul = 0.85 } }
 W.gw_t6_c4hurricane    = { desc = "Enemies see 40% less far, call-ins recharge 35% slower.", stats = { orderCooldown = -0.35 }, knobs = { npcLookMul = 0.6 } }
-W.gw_t6_firestorm      = { desc = "Shields recharge 30% slower, sweepers take +50% fire damage, outdoors burns (2/s).",
-	stats = { regen = -0.30, fire = -0.5 }, knobs = { outdoorDps = 2 } }
+W.gw_t6_firestorm      = { desc = "Shields recharge 30% slower, sweepers take +50% fire damage, outdoors burns (2/s).", stats = { regen = -0.30, fire = -0.5 }, knobs = { outdoorDps = 2 } }
 W.gw_t6_unfathomablewind = { desc = "Call-ins recharge 40% slower.", stats = { orderCooldown = -0.40 } }
 W.gw_t7_c5hurricane    = { desc = "Enemies see 50% less far, call-ins recharge 40% slower.", stats = { orderCooldown = -0.40 }, knobs = { npcLookMul = 0.5 } }
-W.gw_t7_permian_extinction = { desc = "Outdoors burns everyone (6/s), +50% fire damage to sweepers.",
-	stats = { fire = -0.5 }, knobs = { outdoorDps = 6, npcOutdoorDps = 6 } }
-W.gw_t7_pyroclastic_flow = { desc = "Outdoors burns everyone (6/s), +50% fire damage to sweepers.",
-	stats = { fire = -0.5 }, knobs = { outdoorDps = 6, npcOutdoorDps = 6 } }
+W.gw_t7_permian_extinction = { desc = "Outdoors burns everyone (6/s), +50% fire damage to sweepers.", stats = { fire = -0.5 }, knobs = { outdoorDps = 6, npcOutdoorDps = 6 } }
+W.gw_t7_pyroclastic_flow = { desc = "Outdoors burns everyone (6/s), +50% fire damage to sweepers.", stats = { fire = -0.5 }, knobs = { outdoorDps = 6, npcOutdoorDps = 6 } }
 W.gw_t7_space          = { desc = "Very low gravity, shields recharge 50% slower.", stats = { regen = -0.5 }, knobs = { gravity = 150 } }
 S.weatherEffects = W
 -- }}}

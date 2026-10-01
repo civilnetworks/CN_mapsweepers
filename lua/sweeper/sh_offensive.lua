@@ -91,7 +91,7 @@ local NEW = {
 		scatterJitter = 2.0,   -- how far out of its own sector a bomblet may drift, in sectors.
 		                       -- 0 = a perfectly even ring. 1 = it stays in its sector. 2+ = it can
 		                       -- cross into its neighbours', so you get real clumps and gaps.
-		scatterInner = 0.04,   -- closest a bomblet lands, as a fraction of spread
+		scatterInner = 0.01,   -- closest a bomblet lands, as a fraction of spread
 		timeJitter = 0.45,     -- seconds of random slop on each bomblet's delay, so they don't tick off in time
 	},
 	-- // Shelling variants {{{
@@ -333,14 +333,8 @@ if SERVER then
 		return missile
 	end
 	S.SpawnSeeker = seeker
-	S.EnemiesNear = enemiesNear -- no call-in uses it since Kamikaze Drones came out; kept for the next one
-
-	-- Points scattered over a circle around `pos`, handed back in randomised order.
-	-- Each point owns one sector of the circle so the whole area still gets covered; `jitter` is how
-	-- many sectors it may drift out of its own (0 = a perfectly even ring, 1 = it stays put, 2+ = it
-	-- can cross into its neighbours', which is what gives real clumps and gaps); and the sectors are
-	-- dealt out shuffled, so a staggered volley doesn't walk around the circle in order and read as a
-	-- rotating sweep. `inner` is the closest a point may land, as a fraction of `spread`.
+	S.EnemiesNear = enemiesNear 
+	
 	local function scatterPoints(pos, count, spread, jitter, inner)
 		count = math.max(1, math.floor(count or 1))
 		jitter = jitter or 2

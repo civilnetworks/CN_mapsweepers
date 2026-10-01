@@ -36,13 +36,13 @@ S.callins = {
 	},
 	skills_stimcrate = {
 		name = "Stim Crate",
-		desc = "A purple restock box the squad presses E on for a random combat stim. Holds 6 doses, no timer - it stays until it's empty.",
+		desc = "A purple restock box the squad presses E on for a random combat stim.",
 		cost = 450, cooldown = 150, category = "SUPPLIES", slotPos = 4,
 		kind = "stim", health = 400, charge = 6, perUse = 1, radius = 80, maxPerPlayer = 1,
 	},
 	skills_ammocache = {
 		name = "Ammo Cache",
-		desc = "A restock box the squad presses E on for ammo. Holds 1600 ammo, no timer - it stays until it's empty.",
+		desc = "A restock box the squad presses E on for ammo.",
 		cost = 400, cooldown = 90, category = "SUPPLIES", slotPos = 6,
 		kind = "ammo", health = 400, charge = 1600, perUse = 200, radius = 80, maxPerPlayer = 1,
 	},
@@ -54,33 +54,33 @@ S.callins = {
 	},
 	skills_cover = {
 		name = "Deployable Cover",
-		desc = "Drops a bullet-blocking barricade. 600 HP, lasts 2 minutes. Max 2 at a time.",
-		cost = 300, cooldown = 45, category = "DEFENSIVE", slotPos = 3,
-		health = 600, lifetime = 120, maxPerPlayer = 2,
+		desc = "Drops a bullet-blocking barricade.",
+		cost = 100, cooldown = 30, category = "DEFENSIVE", slotPos = 3,
+		health = 600,
 	},
 
 	-- Class-only structures (sweeper_structure)
 	skills_decoy = {
 		name = "Decoy Beacon",
-		desc = "A hologram sweeper that pulls the aggro of every enemy nearby. 300 HP, lasts 15s.",
+		desc = "A hologram sweeper that pulls the aggro of every enemy nearby.Lasts 30s.",
 		cost = 250, cooldown = 45, category = "UTILITY", slotPos = 5,
-		kind = "decoy", health = 300, lifetime = 15, radius = 1200,
+		kind = "decoy", health = 300, lifetime = 30, radius = 1200,
 	},
 	skills_healstation = {
 		name = "Healing Station",
-		desc = "A pad that heals sweepers standing on it for 4 HP/s. Holds 200 HP of healing - no timer, it stays until the charge is used up.",
+		desc = "A pad that heals sweepers standing on it for 4 HP/s.",
 		cost = 400, cooldown = 90, category = "SUPPLIES", slotPos = 5,
 		kind = "heal", health = 500, charge = 200, radius = 150, healPerSec = 4, maxPerPlayer = 1,
 	},
 	skills_bulwark = {
 		name = "Bulwark",
-		desc = "A big shield dome for 20s. Enemy fire from outside is absorbed (2000 HP); your team can shoot out.",
+		desc = "A big shield dome for 20s. Enemy fire from outside is absorbed while you can shoot from the inside.",
 		cost = 500, cooldown = 90, category = "DEFENSIVE", slotPos = 4,
 		kind = "bulwark", health = 600, lifetime = 20, radius = 300, domeHealth = 2000,
 	},
 	skills_totem = {
 		name = "Taunt Totem",
-		desc = "Draws every enemy within ~47m to it and shocks anything close (20 dmg/s). 1000 HP, lasts 30s.",
+		desc = "Draws every enemy to it and shocks anything close.",
 		cost = 350, cooldown = 60, category = "DEFENSIVE", slotPos = 5,
 		kind = "totem", health = 1000, lifetime = 30, radius = 2500, shockRadius = 200, shockDamage = 20,
 	},

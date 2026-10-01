@@ -25,21 +25,15 @@ local S = sweeper
 
 S.lbSeason = function() return os.date("%Y-%m") end
 
--- Boards: id, label, the stat it reads, and whether more is better.
--- `calc` builds the number from a player's record entry.
--- source = "pve" / "pvp" reads the gamemode's own leaderboard files (all-time, with its full history).
 S.lbBoards = {
 	{ id = "wins",      label = "Missions won",    source = "pve", calc = function(e) return e.wins or 0 end },
-	{ id = "wlr",       label = "Win / loss ratio", source = "pve", decimals = 2, minGames = 5,
-	  calc = function(e) local l = e.losses or 0 return l == 0 and (e.wins or 0) or ((e.wins or 0) / l) end },
+	{ id = "wlr",       label = "Win / loss ratio", source = "pve", decimals = 2, minGames = 5,	  calc = function(e) local l = e.losses or 0 return l == 0 and (e.wins or 0) or ((e.wins or 0) / l) end },
 	{ id = "streak",    label = "Best win streak", source = "pve", calc = function(e) return e.highestWinstreak or 0 end },
 	{ id = "kills",     label = "Kills",           calc = function(e) return e.kills or 0 end },
 	{ id = "boss",      label = "Boss kills",      calc = function(e) return e.bossKills or 0 end },
 	{ id = "missions",  label = "Missions played", calc = function(e) return e.missions or 0 end },
-	{ id = "survival",  label = "Survival rate",   suffix = "%", minMissions = 5,
-	  calc = function(e) return (e.missions or 0) > 0 and math.Round((e.evacs or 0) / e.missions * 100) or 0 end },
-	{ id = "deaths",    label = "Deaths per mission", lowerIsBetter = true, decimals = 2, minMissions = 5,
-	  calc = function(e) return (e.missions or 0) > 0 and ((e.deaths or 0) / e.missions) or 0 end },
+	{ id = "survival",  label = "Survival rate",   suffix = "%", minMissions = 5,	  calc = function(e) return (e.missions or 0) > 0 and math.Round((e.evacs or 0) / e.missions * 100) or 0 end },
+	{ id = "deaths",    label = "Deaths per mission", lowerIsBetter = true, decimals = 2, minMissions = 5,	  calc = function(e) return (e.missions or 0) > 0 and ((e.deaths or 0) / e.missions) or 0 end },
 	{ id = "orders",    label = "Call-ins used",   calc = function(e) return e.orders or 0 end },
 	{ id = "implants",  label = "Implant Rank",    calc = function(e) return e.implantRank or 0 end },
 	{ id = "life",      label = "Longest life",    time = true, calc = function(e) return e.longestLife or 0 end },
@@ -67,14 +61,13 @@ if SERVER then
 	local DIR = "sweeper_lb"
 	file.CreateDir(DIR)
 
-	-- // Storage {{{
 	local function pathFor(sid64) return DIR .. "/" .. sid64 .. ".json" end
 
 	local blank = {
 		name = "", missions = 0, wins = 0, losses = 0, bestStreak = 0,
 		kills = 0, killsDirect = 0, killsTurret = 0, killsExplosive = 0, bossKills = 0,
 		deaths = 0, evacs = 0, orders = 0, longestLife = 0, implantRank = 0,
-		lastSeen = 0, season = "", s = {},   -- s = this season's copy of the same numbers
+		lastSeen = 0, season = "", s = {},
 	}
 
 	function S.LbGet(sid64)
@@ -84,7 +77,7 @@ if SERVER then
 			local t = util.JSONToTable(raw)
 			if istable(t) then table.Merge(e, t) end
 		end
-		-- new month = new season, the old numbers stay in the all-time totals
+
 		if e.season ~= S.lbSeason() then
 			e.season = S.lbSeason()
 			e.s = {}
@@ -121,9 +114,7 @@ if SERVER then
 
 	function S.LbRecords() return readJSON("_records.json", { fastest = {} }) end
 	function S.LbHallOfFame() return readJSON("_halloffame.json", {}) end
-	-- }}}
 
-	-- // Live tracking during a mission {{{
 	S.lbRun = S.lbRun or { boss = {}, life = {} }
 
 	local function runReset()
@@ -134,7 +125,6 @@ if SERVER then
 		return IsValid(ply) and ply:IsPlayer() and not ply:IsBot() and ply:SteamID64() or nil
 	end
 
-	-- remember which enemy type an NPC is, so we know on death whether it was a boss
 	hook.Add("MapSweepersNPCSpawned", "sweeper_records", function(npc, npcType)
 		if IsValid(npc) then npc.sweeperType = npcType end
 	end)
@@ -150,7 +140,6 @@ if SERVER then
 		end
 	end)
 
-	-- how long each player stayed alive, best run of the mission
 	local function lifeStart(ply)
 		local sid = sidOf(ply)
 		if sid then ply.jcms_lbAliveSince = CurTime() end
@@ -172,9 +161,7 @@ if SERVER then
 	end)
 	hook.Add("PlayerDeath", "sweeper_records", function(ply) lifeStop(ply) end)
 	hook.Add("PlayerDisconnected", "sweeper_records", function(ply) lifeStop(ply) end)
-	-- }}}
 
-	-- // Writing it all down when the mission ends {{{
 	local function implantRankOf(sid64)
 		local total = 0
 		local d = S.data and S.data[sid64]
@@ -186,7 +173,6 @@ if SERVER then
 		return total
 	end
 
-	-- add to both the all-time number and this season's
 	local function bump(e, key, amount)
 		if amount == 0 then return end
 		e[key] = (e[key] or 0) + amount
@@ -205,7 +191,6 @@ if SERVER then
 		local stats = jcms.director_GetPostMissionStats and jcms.director_GetPostMissionStats()
 		if not stats or not stats.players then return end
 
-		-- count the humans who actually played
 		local played = 0
 		for i, pd in ipairs(stats.players) do
 			if pd.wasSweeper and not tostring(pd.sid64):StartWith("BOT_") then played = played + 1 end
@@ -221,7 +206,7 @@ if SERVER then
 		for i, pd in ipairs(stats.players) do
 			local sid = tostring(pd.sid64)
 			if pd.wasSweeper and not sid:StartWith("BOT_") then
-				-- players still here get their life time closed off first
+
 				local ply = player.GetBySteamID64(sid)
 				if IsValid(ply) then lifeStop(ply) end
 
@@ -287,7 +272,6 @@ if SERVER then
 		runReset()
 	end
 
-	-- the gamemode tells us the mission is over here
 	function S.InstallRecordHook()
 		if not (jcms and jcms.leaderboard_RoundEnd) or S.Wrapped(jcms, "RoundEnd") then return end
 		local orig = jcms.leaderboard_RoundEnd
@@ -346,8 +330,6 @@ if SERVER then
 	end
 	-- }}}
 
-	-- // Sending the boards to a player {{{
-	-- The gamemode's own leaderboard: one file per player, wins / losses / streak (PvE) and ELO (PvP)
 	local function readOfficial(kind)
 		local dir = "mapsweepers/server/leaderboard/" .. kind
 		local out = {}
@@ -422,9 +404,7 @@ if SERVER then
 			net.WriteTable(payload)
 		net.Send(ply)
 	end)
-	-- }}}
 
-	-- // Admin {{{
 	local function adminOnly(ply)
 		if IsValid(ply) and not ply:IsAdmin() then ply:ChatPrint("[Records] Admins only.") return false end
 		return true
@@ -466,10 +446,8 @@ if SERVER then
 		local msg = "[Records] All records wiped."
 		if IsValid(ply) then ply:ChatPrint(msg) else print(msg) end
 	end, nil, "Admin: wipe every record (needs 'confirm').")
-	-- }}}
 end
 
--- ============================================================================================
 if CLIENT then
 	S.lbData = S.lbData or nil
 	S.lbSeasonOnly = false
@@ -490,7 +468,6 @@ if CLIENT then
 		net.SendToServer()
 	end
 
-	-- // Look: same building blocks as the rest of our menus {{{
 	local function colB() return jcms.color_bright end
 	local function colA() return jcms.color_bright_alt end
 	local function colD() return jcms.color_dark end
@@ -521,14 +498,12 @@ if CLIENT then
 		end
 		return b
 	end
-	-- }}}
 
-	-- // The RECORDS page {{{
 	function S.BuildRecordsMenu(root)
 		root:Clear()
 		S.lbPanel = root
 		S.lbBoard = S.lbBoard or "kills"
-		S.lbView = S.lbView or "boards"   -- boards / records / hof
+		S.lbView = S.lbView or "boards"
 
 		root.Paint = function(self, w, h)
 			local bright = colB()
@@ -548,7 +523,6 @@ if CLIENT then
 			return true
 		end
 
-		-- top row: view switch + season switch
 		local top = root:Add("DPanel")
 		top:SetPos(16, 54)
 		top:SetSize(root:GetWide() - 32, 26)
@@ -573,7 +547,6 @@ if CLIENT then
 		end, 160)
 		season:SetPos(top:GetWide() - 160, 0)
 
-		-- left: board picker (only on the boards view)
 		local list = root:Add("DScrollPanel")
 		list:SetPos(16, 90)
 		list:SetSize(220, root:GetTall() - 106)
@@ -592,7 +565,6 @@ if CLIENT then
 			b:SetTall(28)
 		end
 
-		-- right: the content
 		local body = root:Add("DPanel")
 		body:SetPos(248, 90)
 		body:SetSize(root:GetWide() - 264, root:GetTall() - 106)
@@ -648,7 +620,6 @@ if CLIENT then
 					y = y + 26
 				end
 
-				-- your own row, pinned at the bottom
 				local mine = data.mine
 				surface.SetDrawColor(bright.r, bright.g, bright.b, 40)
 				jcms.hud_DrawStripedRect(16, h - 44, w - 32, 2, 32)
@@ -711,7 +682,7 @@ if CLIENT then
 					draw.SimpleText("No mission has been cleared yet.", "jcms_small", 16, y, ColorAlpha(bright, 120))
 				end
 
-			else -- hall of fame
+			else 
 				draw.SimpleText("HALL OF FAME", "jcms_medium", 16, 10, bright)
 				surface.SetDrawColor(bright.r, bright.g, bright.b, 40)
 				jcms.hud_DrawStripedRect(16, 40, w - 32, 2, 32)
@@ -740,8 +711,6 @@ if CLIENT then
 			return true
 		end
 
-		-- Everything is sized here, every time the page gets its real size. Measuring once while the
-		-- lobby was still building gave zero-height panels, which is why the boards didn't show.
 		root.PerformLayout = function(self, w, h)
 			top:SetPos(16, 54)
 			top:SetSize(math.max(0, w - 32), 26)
@@ -788,12 +757,7 @@ if CLIENT then
 		S.BuildRecordsMenu(inner)
 	end
 	concommand.Add("jcms_records", function() S.OpenRecordsMenu() end, nil, "Open the server records.")
-	-- }}}
 
-	-- // The LEADERBOARD tab is our records page {{{
-	-- The gamemode builds its wins / losses tables into the tab; we remove them and put the records
-	-- page there instead. Its numbers aren't lost: they're the "Missions won", "Win / loss ratio",
-	-- "Best win streak" and PvP boards, read straight from the gamemode's own files.
 	function S.InstallRecordsTab()
 		if not (jcms and jcms.offgame_BuildLeaderboardTab) or S.Wrapped(jcms, "LbTab") then return end
 		local orig = jcms.offgame_BuildLeaderboardTab
@@ -817,5 +781,4 @@ if CLIENT then
 	hook.Add("Initialize", "sweeper_recordsTab", S.InstallRecordsTab)
 	hook.Add("InitPostEntity", "sweeper_recordsTab", S.InstallRecordsTab)
 	S.InstallRecordsTab()
-	-- }}}
 end

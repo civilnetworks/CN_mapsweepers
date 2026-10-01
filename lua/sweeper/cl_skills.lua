@@ -524,20 +524,17 @@ local function buildTree(frame, treePanel, class)
 		canvas.nodes[sk.id] = { x = nx, y = ny, sk = sk }
 	end
 
-	-- Class tree
 	local colW = tw / TREE_COLUMNS
 	for tier, row in pairs(tiers) do
 		local count = #row
 		local spacing = tw / count
 		for i, sk in ipairs(row) do
-			-- Skills sit in a fixed column (sk.col) so children line up under their parents
 			local cx = sk.col and (colW * (sk.col - 0.5)) or (spacing * (i - 0.5))
 			local nx = math.floor(math.Clamp(cx - NODE_W / 2, 0, tw - NODE_W))
 			makeNode(sk, nx, 16 + (tier - 1) * rowGap)
 		end
 	end
 
-	-- Specialization upgrades: one row per tier, for the spec picked in that tier
 	local header = vgui.Create("DPanel", canvas)
 	header:SetPos(0, specTop)
 	header:SetSize(tw, 36)
@@ -588,9 +585,6 @@ local function buildTree(frame, treePanel, class)
 		end
 	end
 
-	-- Connection lines, drawn under the nodes.
-	-- Each line drops straight down from the parent, turns just above the child, then enters it,
-	-- so it's always clear which skill leads to which. Hovering a skill highlights its links.
 	local function thickLine(x1, y1, x2, y2, t)
 		if x1 == x2 then
 			surface.DrawRect(x1 - t / 2, math.min(y1, y2), t, math.abs(y2 - y1))
@@ -601,7 +595,7 @@ local function buildTree(frame, treePanel, class)
 
 	canvas.Paint = function(self, w, h)
 		local hover = self.hoverId
-		local passes = { false, true } -- draw normal lines first, highlighted ones on top
+		local passes = { false, true }
 		for p, highlightPass in ipairs(passes) do
 			for id, node in pairs(self.nodes) do
 				if node.sk.req then
@@ -624,7 +618,6 @@ local function buildTree(frame, treePanel, class)
 								local t = isHover and 3 or 2
 								draw.NoTexture()
 								if parent.y == node.y then
-									-- same row (specialization upgrades): straight across, arrow into the left edge
 									local x1, x2, y = parent.x + NODE_W, node.x, math.floor(node.y + NODE_H / 2)
 									thickLine(x1, y, x2, y, t)
 									surface.DrawPoly({ { x = x2 - 6, y = y - 5 }, { x = x2, y = y }, { x = x2 - 6, y = y + 5 } })
@@ -636,7 +629,6 @@ local function buildTree(frame, treePanel, class)
 									thickLine(x1, elbowY, x2, elbowY, t)
 									thickLine(x2, elbowY, x2, y2, t)
 
-									-- small arrow tip into the child
 									surface.DrawPoly({ { x = x2 - 5, y = y2 - 6 }, { x = x2 + 5, y = y2 - 6 }, { x = x2, y = y2 } })
 								end
 							end
@@ -668,7 +660,6 @@ local function buildSpecs(frame, panel, class)
 		label:SetSize(labelW - 8, cardH)
 		label.Paint = function(self, w, h)
 			local clr = colBright()
-			-- striped marker bar on the left, like the gamemode's separators
 			surface.SetDrawColor(clr.r, clr.g, clr.b, unlocked and 120 or 35)
 			striped(0, 8, 4, h - 16, 32, CurTime() * 16)
 			draw.SimpleText("TIER " .. tier, fnt("jcms_big", "sweeper_title"), 12, h / 2 + 2, ColorAlpha(clr, unlocked and 255 or 70), TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)
@@ -700,7 +691,6 @@ local function buildSpecs(frame, panel, class)
 				local on = selected or canPick
 				local small = fnt("jcms_small", "sweeper_small")
 
-				-- Card body: dark cut-corner panel; selected gets a solid header strip, hover a tint
 				surface.SetDrawColor(dark.r, dark.g, dark.b, 200)
 				polyFilled(0, 0, w, h, 10)
 				if hov then
@@ -714,15 +704,12 @@ local function buildSpecs(frame, panel, class)
 					polyFilled(64, 4, w - 68, 26, 6)
 				end
 
-				-- Emblem in a cut-corner frame
 				surface.SetDrawColor(clr.r, clr.g, clr.b, on and 255 or 45)
 				if selected then polyFilled(8, 8, 50, 50, 8) else polyHollow(8, 8, 50, 50, 8) end
 				S.DrawSpecIcon(spec.id, 12, 12, 42, selected and dark or ColorAlpha(clr, on and 255 or 60))
 
 				draw.SimpleText(string.upper(spec.name), fnt("jcms_medium", "sweeper_title"), 72, 5, selected and dark or ColorAlpha(clr, on and 255 or 70))
 
-				-- The TIER label at the left of the row already says which level opens it, so the cards
-				-- don't repeat it - a level lock just leaves this corner blank.
 				local status = selected and "SELECTED" or (canPick and "CLICK TO SELECT") or (unlocked and string.upper(reason or "")) or ""
 				draw.SimpleText(status, fnt("jcms_small_bolder", "sweeper_small"), w - 12, 17, selected and dark or ColorAlpha(canPick and alt or clr, canPick and 255 or 70), TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
 
@@ -749,15 +736,10 @@ local function buildSpecs(frame, panel, class)
 	end
 end
 
--- // Options view {{{
--- Opens the gamemode's own Options tab (same one as in the lobby) in a pop-up
 function S.OpenGameOptions()
 	if not (jcms and jcms.offgame_BuildOptionsTab) then return end
 	if S.InstallGameOptions then S.InstallGameOptions() end
 	if IsValid(S.gameOptionsFrame) then S.gameOptionsFrame:Remove() end
-	-- Sized to what the gamemode actually builds instead of a round number: its two tab buttons run
-	-- to x=636 (32 + 300 + 4 + 300) and the category lists are 512 wide at x=48, so anything past
-	-- ~660 is dead space - which is what the old 940 was mostly showing.
 	local TAB_W = 660
 
 	local frame = vgui.Create("DFrame")
@@ -766,8 +748,6 @@ function S.OpenGameOptions()
 	frame:Center()
 	frame:SetTitle("")
 	frame:MakePopup()
-
-	-- Derma's own window buttons don't belong on a Map Sweepers panel
 	frame:ShowCloseButton(false)
 	for i, name in ipairs({ "btnClose", "btnMaxim", "btnMinim" }) do
 		local b = frame[name]
@@ -804,38 +784,25 @@ function S.OpenGameOptions()
 	end
 end
 
--- // Our settings inside the Map Sweepers options tab (lobby Options + the pop-up above) {{{
--- The gamemode has no hook for its options tab, so we wrap jcms.offgame_BuildOptionsTab, let it build
--- everything as normal, then add an "IMPLANTS & CLASS LEVELS" category to its client settings list,
--- built the same way (same paint functions / fonts) as the gamemode's own categories.
+
 local function findClientCatList(tab)
 	for i, child in ipairs(tab:GetChildren()) do
 		if child:GetName() == "DCategoryList" then return child end
 		for j, sub in ipairs(child:GetChildren()) do
-			if sub:GetName() == "DCategoryList" then return sub end -- first one = client settings
+			if sub:GetName() == "DCategoryList" then return sub end
 		end
 	end
 end
 
--- // Shared row layout for every category we add {{{
--- There used to be four copies of these helpers, one per category, and their steps had drifted
--- (sliders 28 or 30, notes a fixed 36 or 48, gaps 6 or 8), so rows didn't line up between our
--- categories or with the gamemode's. This is the one copy, using the gamemode's own metrics:
--- 24px left padding, 24px-tall controls starting at y=16, sliders the full content width
--- (contentSize - 48), from cl_offgame.lua's Preferences / Customize HUD categories.
---
--- finish() sizes the content panel to its last row. Without it a category reserves whatever height
--- Derma felt like giving an unsized DPanel, which is where the empty space under our rows came from;
--- the gamemode does the same thing by hand for its own variable-length panels.
 S.optionsMetrics = {
-	pad    = 24,   -- left / right padding
-	top    = 16,   -- first row
-	row    = 24,   -- control height
-	step   = 24,   -- checkbox row step
-	tall   = 28,   -- slider / binder / button row step
-	gap    = 8,    -- between groups
-	button = 22,   -- button height
-	tail   = 8,    -- breathing room under the last row
+	pad    = 24,
+	top    = 16,
+	row    = 24,
+	step   = 24,
+	tall   = 28,
+	gap    = 8,
+	button = 22,
+	tail   = 8,
 }
 
 function S.OptionsRows(content, contentSize)
@@ -867,8 +834,6 @@ function S.OptionsRows(content, contentSize)
 		return sl
 	end
 
-	-- Key binders read their convar once at build time, so a reset has to push the value back in -
-	-- R.binders is what the reset button walks.
 	function R.keybind(label, cvar)
 		local l = content:Add("DLabel")
 		l:SetPos(M.pad, R.y)
@@ -911,7 +876,6 @@ function S.OptionsRows(content, contentSize)
 		return b
 	end
 
-	-- Several buttons sharing one row, splitting the content width between them
 	function R.buttonRow(list)
 		local n = #list
 		if n == 0 then return end
@@ -936,10 +900,6 @@ function S.OptionsRows(content, contentSize)
 		return unpack(made)
 	end
 
-	-- Wrapped text. DLabel's own wrap needs a height before it will lay out and SetAutoStretchVertical
-	-- only applies on the next layout pass - which is after the category has already measured itself,
-	-- so notes used to come out clipped mid-sentence. The lines are measured here instead and drawn
-	-- by hand, so the panel is exactly as tall as the text and nothing is cut off.
 	function R.note(text, colorFn)
 		local lines, line = {}, ""
 		surface.SetFont("jcms_small")
@@ -973,7 +933,6 @@ function S.OptionsRows(content, contentSize)
 		return p
 	end
 
-	-- A label / button pair on one row, for lists whose state isn't a convar (the blocklists)
 	function R.toggleRow(text, labelColor, buttonText, onClick)
 		local l = content:Add("DLabel")
 		l:SetPos(M.pad, R.y + 3)
@@ -1394,10 +1353,6 @@ function S.BuildMenuContents(frame, class, closeable)
 			draw.SimpleText(ctext, fnt("jcms_medium", "sweeper_title"), cx + cw / 2, cy + ch / 2 - 1, ColorAlpha(bright, 120), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 		end
 
-		-- This line used to be every bonus joined into one unwrapped string, which ran clean off the
-		-- right edge once a class had a few implants in it. The bonuses live in the strip along the
-		-- bottom of the content area now, so all this has to say is when there aren't any yet.
-		-- bonusCount is cached by rebuildStrip, so this doesn't re-measure 40 stats every frame
 		if (self.bonusCount or 0) == 0 then
 			draw.SimpleText("No implants installed yet. Earn XP to gain " .. S.pointNamePlural .. ".",
 				fnt("jcms_small", "sweeper_small"), 20, 118, ColorAlpha(bright, 200))
@@ -1405,7 +1360,6 @@ function S.BuildMenuContents(frame, class, closeable)
 		surface.SetDrawColor(bright.r, bright.g, bright.b, 50)
 		striped(16, 134, w - 32, 3, 32)
 
-		-- Bottom line: error/status in the alert colour, otherwise a hint
 		if self.statusUntil and CurTime() < self.statusUntil then
 			draw.SimpleText(string.upper(self.statusText or ""), fnt("jcms_medium", "sweeper_med"), w / 2, h - 24, colAlert(), TEXT_ALIGN_CENTER)
 		else
@@ -1424,7 +1378,6 @@ function S.BuildMenuContents(frame, class, closeable)
 		return true
 	end
 
-	-- Close button (pop-up only)
 	if IsValid(frame.btnClose) then
 		frame.btnClose:SetVisible(false)
 		frame.btnMaxim:SetVisible(false)
